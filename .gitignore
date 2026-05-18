@@ -1,0 +1,67 @@
+# 依赖
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# 环境变量（包含敏感信息，不上传）
+.env
+.env.local
+.env.prod
+backend/.env
+*.env
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 日志
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 构建产物（可选上传，这里保留dist）
+# dist/
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# SSL证书
+ssl/
+*.pem
+*.key
+*.crt
+
+# 备份
+*.bak
+backups/
+
+# 音频/媒体（如果不需要版本控制）
+# backend/*.mp3
+
+# WorkBuddy 工作目录
+.workbuddy/memory/
