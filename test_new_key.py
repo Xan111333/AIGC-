@@ -1,7 +1,7 @@
 import requests
 
-ak_new = "bce-v3/ALTAK-x360lwjJOFzcpGRaxMd6Z/e14831bdd4f3a0104c041dfbc8c4e0d8740d8054"
-sk_new = "36772a58ee9d49ac92d0cc7cd345a692"
+ak_new = "YOUR_BCE_AK"
+sk_new = "YOUR_BAIDU_SK"
 
 print("="*60)
 print("测试新的API密钥")

@@ -1,7 +1,7 @@
 import requests
 
-ak_current = "ALTAKPTaqCa9KHtOqBmw62SEEH"
-sk_current = "6183b66b3810447187fe9fba33436d32"
+ak_current = "YOUR_BAIDU_AK"
+sk_current = "YOUR_BAIDU_SK"
 
 print("="*60)
 print("测试当前配置的密钥")

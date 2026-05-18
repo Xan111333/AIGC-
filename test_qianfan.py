@@ -1,7 +1,7 @@
 import requests
 
-ak_from_screenshot = "ALTAKqCfwDeE6x6MZBzmtWZLoz"
-sk_current = "6183b66b3810447187fe9fba33436d32"
+ak_from_screenshot = "YOUR_BAIDU_AK"
+sk_current = "YOUR_BAIDU_SK"
 
 print("="*60)
 print("测试截图中的AK + 当前SK")

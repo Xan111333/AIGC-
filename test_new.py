@@ -1,7 +1,7 @@
 import requests
 
-ak_new = "ALTAKJIQMn6vMxXxWEjExJBHq"
-sk_new = "36772a58ee9d49ac92d0cc7cd345a692"
+ak_new = "YOUR_BAIDU_AK"
+sk_new = "YOUR_BAIDU_SK"
 
 print("="*60)
 print("测试新密钥")
