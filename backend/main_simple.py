@@ -14,19 +14,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
-DEEPSEEK_API_URL = os.getenv("DEEPSEEK_API_URL", "https://api.deepseek.com/v1/chat/completions")
-QIANFAN_AK = os.getenv("QIANFAN_AK", "")
-QIANFAN_SK = os.getenv("QIANFAN_SK", "")
-QIANFAN_API_URL = os.getenv("QIANFAN_API_URL", "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/text2image/sd_xl")
-
 ZHIPU_API_KEY = os.getenv("ZHIPU_API_KEY", "")
-
-def has_deepseek():
-    return bool(DEEPSEEK_API_KEY)
-
-def has_qianfan():
-    return bool(QIANFAN_AK) and bool(QIANFAN_SK)
+ZHIPU_TEXT_API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+ZHIPU_IMAGE_API_URL = "https://open.bigmodel.cn/api/paas/v4/images/generations"
 
 def has_zhipu():
     return bool(ZHIPU_API_KEY)
@@ -255,10 +245,10 @@ def get_me(current_user = Depends(get_current_user)):
         "is_active": current_user.get("is_active", True)
     }
 
-def generate_text_with_deepseek(prompt: str, style: str, tone: str, language: str) -> str:
-    if not has_deepseek():
+def generate_text_with_zhipu(prompt: str, style: str, tone: str, language: str) -> str:
+    if not has_zhipu():
         return None
-    
+
     style_map = {
         "story": "故事",
         "poem": "诗歌",
@@ -266,36 +256,52 @@ def generate_text_with_deepseek(prompt: str, style: str, tone: str, language: st
         "neutral": "文本"
     }
     style_name = style_map.get(style.lower(), "文本")
-    
-    system_prompt = f"请生成一篇{style_name}，要求：\n- 风格：{style}\n- 语气：{tone}\n- 语言：{language}"
-    
+
+    tone_map = {
+        "formal": "正式",
+        "casual": "轻松",
+        "humorous": "幽默",
+        "serious": "严肃",
+        "neutral": "中性"
+    }
+    tone_name = tone_map.get(tone.lower(), "中性")
+
+    lang_map = {
+        "zh": "中文",
+        "en": "英文",
+        "mixed": "中英双语"
+    }
+    lang_name = lang_map.get(language.lower(), "中文")
+
+    system_prompt = f"你是一位专业的AI助手，请根据用户要求生成内容。\n要求：\n- 内容类型：{style_name}\n- 语气：{tone_name}\n- 语言：{lang_name}\n请直接输出内容，不要加前后缀。"
+
     try:
         response = requests.post(
-            DEEPSEEK_API_URL,
+            ZHIPU_TEXT_API_URL,
             headers={
-                "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+                "Authorization": f"Bearer {ZHIPU_API_KEY}",
                 "Content-Type": "application/json"
             },
             json={
-                "model": "deepseek-chat",
+                "model": "glm-4",
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ],
-                "temperature": 0.7,
+                "temperature": 0.8,
                 "max_tokens": 2000
             },
             timeout=60
         )
-        
+
         if response.status_code == 200:
             result = response.json()
             return result["choices"][0]["message"]["content"]
         else:
-            print(f"DeepSeek API Error: {response.status_code} - {response.text}")
+            print(f"智谱文本 API 错误: {response.status_code} - {response.text}")
             return None
     except Exception as e:
-        print(f"DeepSeek API Exception: {e}")
+        print(f"智谱文本 API 异常: {e}")
         return None
 
 @app.post("/api/text/generate", response_model=GenerationRecordResponse)
@@ -312,7 +318,7 @@ def generate_text(request: TextGenerationRequest, current_user = Depends(get_cur
         "language": request.language
     })
     
-    result = generate_text_with_deepseek(
+    result = generate_text_with_zhipu(
         request.prompt, request.style, request.tone, request.language)
     
     if result is None:
@@ -344,24 +350,6 @@ def get_text_history(skip: int = 0, limit: int = 50, current_user = Depends(get_
     text_records = [r for r in generation_records if r["type"] == "text"]
     return text_records[skip:skip+limit]
 
-def get_qianfan_access_token() -> str:
-    if not has_qianfan():
-        return None
-    
-    token_url = f"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={QIANFAN_AK}&client_secret={QIANFAN_SK}"
-    
-    try:
-        response = requests.post(token_url, timeout=30)
-        if response.status_code == 200:
-            result = response.json()
-            return result.get("access_token")
-        else:
-            print(f"Qianfan Token Error: {response.status_code} - {response.text}")
-            return None
-    except Exception as e:
-        print(f"Qianfan Token Exception: {e}")
-        return None
-
 def generate_image_with_zhipu(prompt: str, resolution: str, style: str, num_images: int) -> str:
     if not has_zhipu():
         print("智谱 AI API Key 未配置")
@@ -380,26 +368,25 @@ def generate_image_with_zhipu(prompt: str, resolution: str, style: str, num_imag
     }
     style_name = style_map.get(style.lower(), "写实")
     
-    url = "https://open.bigmodel.cn/api/paas/v4/images/generations"
     headers = {
         "Authorization": f"Bearer {ZHIPU_API_KEY}",
         "Content-Type": "application/json"
     }
-    
+
     full_prompt = f"{prompt}，{style_name}风格"
-    
+
     data = {
         "model": "cogview-4",
         "prompt": full_prompt,
         "size": resolution
     }
-    
+
     print(f"调用智谱 CogView-4 图像生成...")
     print(f"提示词: {full_prompt}")
     print(f"分辨率: {resolution}")
-    
+
     try:
-        response = requests.post(url, headers=headers, json=data, timeout=120)
+        response = requests.post(ZHIPU_IMAGE_API_URL, headers=headers, json=data, timeout=120)
         
         if response.status_code == 200:
             result = response.json()
@@ -1208,9 +1195,7 @@ def export_report(current_user = Depends(require_teacher)):
 def get_system_config_dict():
     return {
         "api_key_status": {
-            "zhipu": has_zhipu(),
-            "deepseek": has_deepseek(),
-            "qianfan": has_qianfan()
+            "zhipu": has_zhipu()
         },
         "rate_limit": {
             "text_per_hour": 100,

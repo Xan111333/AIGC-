@@ -26,10 +26,10 @@
 ```
 SECRET_KEY=换成一个随机字符串（比如32位随机字母数字）
 DATABASE_URL=sqlite:///./aigc_training.db
-DEEPSEEK_API_KEY=你的DeepSeek密钥
-QIANFAN_AK=你的百度千帆AccessKey
-QIANFAN_SK=你的百度千帆SecretKey
+ZHIPU_API_KEY=你的智谱AI密钥
 ```
+
+（只填这三个即可，其他不需要）
 
 ### 1.4 获取后端地址
 部署成功后，在 Railway 项目页面可以看到域名，格式如：
